@@ -15,6 +15,11 @@ the last working build of the retired previous repo).
 >   `rules-version.ps1 -Action bump`. If a number was typed by hand, it is wrong until the tool
 >   agrees.
 
+## 1.0.6 - 2026-09-05 - untested
+
+### Added
+- Added a Skyrim 1.7.99 / 1.7.104 build; the mod now installs as a FOMOD that picks the build for your game version (SE 1.5.97 / AE 1.6.1170, or Skyrim 1.7.x).
+
 ## 1.0.5 - 2026-08-31 - working
 
 ### Changed

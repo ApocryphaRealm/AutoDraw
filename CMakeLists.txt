@@ -1,8 +1,8 @@
-cmake_minimum_required(VERSION 3.21)
+﻿cmake_minimum_required(VERSION 3.21)
 
 project(
 	AutoDraw
-	VERSION 1.0.5
+	VERSION 1.0.6
 	LANGUAGES CXX
 )
 
