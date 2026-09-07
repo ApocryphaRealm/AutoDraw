@@ -8,11 +8,13 @@
 #include "Settings.h"
 
 #include "utils/Logger.h"
+#include "utils/Strings.h"
 #include "utils/Toggle.h"
 
 #include <algorithm>
 #include <functional>
 #include <string>
+#include <vector>
 
 namespace UI
 {
@@ -25,6 +27,8 @@ namespace UI
 		std::string selectedSlider;
 
 		constexpr const char* kLogLevelNames[] = { "Trace", "Debug", "Info", "Warning", "Error", "Critical", "Off" };
+		constexpr const char* kLogLevelKeys[] = { "AD_LogLevel_Trace", "AD_LogLevel_Debug", "AD_LogLevel_Info",
+													"AD_LogLevel_Warning", "AD_LogLevel_Error", "AD_LogLevel_Critical", "AD_LogLevel_Off" };
 		constexpr int kLogLevelCount = 7;
 
 		// The framework renders from the renderer's present hook; anything touching game state
@@ -90,7 +94,7 @@ namespace UI
 		void HelpMarker(const char* a_description)
 		{
 			ImGuiMCP::SameLine();
-			ImGuiMCP::TextDisabled("(?)");
+			ImGuiMCP::TextDisabled("%s", strings::TR("AD_HelpMark", "(?)"));
 			if (ImGuiMCP::IsItemHovered())
 			{
 				ImGuiMCP::SetTooltip("%s", a_description);
@@ -127,7 +131,7 @@ namespace UI
 				}
 
 				ImGuiMCP::SameLine();
-				ImGuiMCP::TextDisabled("<-->");
+				ImGuiMCP::TextDisabled("%s", strings::TR("AD_NudgeArrows", "<-->"));
 			}
 
 			return changed;
@@ -137,74 +141,86 @@ namespace UI
 		{
 			using namespace settings;
 
-			ImGuiMCP::SeparatorText("Automation");
+			ImGuiMCP::SeparatorText(strings::TR("AD_Automation", "Automation"));
 
-			ImGuiMCP::Toggle("Auto draw", &automation::enableAutoDraw);
-			HelpMarker("Draws your weapon or magic the instant something targets you in combat.");
+			ImGuiMCP::Toggle(strings::TR("AD_AutoDraw", "Auto draw"), &automation::enableAutoDraw);
+			HelpMarker(strings::TR("AD_HelpAutoDraw", "Draws your weapon or magic the instant something targets you in combat."));
 
-			ImGuiMCP::Toggle("Auto sheathe", &automation::enableAutoSheathe);
-			HelpMarker("Sheathes your weapon or magic a set delay after you leave combat, or after you draw it manually.");
+			ImGuiMCP::Toggle(strings::TR("AD_AutoSheathe", "Auto sheathe"), &automation::enableAutoSheathe);
+			HelpMarker(strings::TR("AD_HelpAutoSheathe", "Sheathes your weapon or magic a set delay after you leave combat, or after you draw it manually."));
 
-			NudgeableSlider("Sheathe delay", &automation::sheatheDelaySeconds, 0.5F, 30.0F, "%.1f s", 0.5F);
-			HelpMarker("How long to wait after leaving combat, or after drawing manually, before the forced sheathe. Attacking, blocking, being airborne or re-entering combat restarts the wait.");
+			NudgeableSlider(strings::TR("AD_SheatheDelay", "Sheathe delay"), &automation::sheatheDelaySeconds, 0.5F, 30.0F, "%.1f s", 0.5F);
+			HelpMarker(strings::TR("AD_HelpSheatheDelay", "How long to wait after leaving combat, or after drawing manually, before the forced sheathe. Attacking, blocking, being airborne or re-entering combat restarts the wait."));
 
-			ImGuiMCP::Toggle("Leave bound weapons drawn", &automation::exemptBoundWeapons);
-			HelpMarker("Skips the forced sheathe while a bound (conjured) weapon is drawn, so it is not dismissed early - it still ends on its own duration or when you sheathe it yourself.");
+			ImGuiMCP::Toggle(strings::TR("AD_ExemptBound", "Leave bound weapons drawn"), &automation::exemptBoundWeapons);
+			HelpMarker(strings::TR("AD_HelpExemptBound", "Skips the forced sheathe while a bound (conjured) weapon is drawn, so it is not dismissed early - it still ends on its own duration or when you sheathe it yourself."));
 		}
 
 		void RenderDebugSection()
 		{
 			using namespace settings;
 
-			ImGuiMCP::SeparatorText("Debug");
+			ImGuiMCP::SeparatorText(strings::TR("AD_Debug", "Debug"));
 
 			int level = static_cast<int>(debug::logLevel);
 			level = std::clamp(level, 0, kLogLevelCount - 1);
-			if (ImGuiMCP::Combo("Log level", &level, kLogLevelNames, kLogLevelCount))
+			// Rebuilt from TR'd entries every frame (plan 2.2); labelStore owns the translated
+			// bytes for this call so the const char* pointers handed to Combo stay valid.
+			std::vector<std::string> logLevelLabelStore;
+			logLevelLabelStore.reserve(kLogLevelCount);
+			for (int i = 0; i < kLogLevelCount; ++i)
+			{
+				logLevelLabelStore.push_back(strings::TR(kLogLevelKeys[i], kLogLevelNames[i]));
+			}
+			std::vector<const char*> logLevelLabels;
+			logLevelLabels.reserve(logLevelLabelStore.size());
+			for (const auto& s : logLevelLabelStore) { logLevelLabels.push_back(s.c_str()); }
+			if (ImGuiMCP::Combo(strings::TR("AD_LogLevel", "Log level"), &level, logLevelLabels.data(), kLogLevelCount))
 			{
 				debug::logLevel = static_cast<std::uint32_t>(level);
 				ApplyLogLevel();
 			}
-			HelpMarker("Applies immediately. The log is at Documents\\My Games\\Skyrim Special Edition\\SKSE\\AutoDraw.log. Set this to Trace or Debug before reproducing a bug you plan to report.");
+			HelpMarker(strings::TR("AD_HelpLogLevel", "Applies immediately. The log is at Documents\\My Games\\Skyrim Special Edition\\SKSE\\AutoDraw.log. Set this to Trace or Debug before reproducing a bug you plan to report."));
 		}
 
 		void RenderButtons()
 		{
 			ImGuiMCP::SeparatorText("");
 
-			if (ImGuiMCP::Button("Save"))
+			if (ImGuiMCP::Button(strings::TR("AD_SaveBtn", "Save")))
 			{
-				statusMessage = "Saving...";
+				statusMessage = strings::TR("AD_StatusSaving", "Saving...");
 				OnMainThread([]() {
-					statusMessage = settings::Save() ? "Settings saved." : "Could not write the INI. See the log for why.";
+					statusMessage = settings::Save() ? strings::TR("AD_StatusSaved", "Settings saved.")
+													   : strings::TR("AD_StatusSaveFail", "Could not write the INI. See the log for why.");
 				});
 			}
-			HelpMarker("Writes every setting on this page to the plugin's INI so it survives a restart.");
+			HelpMarker(strings::TR("AD_HelpSave", "Writes every setting on this page to the plugin's INI so it survives a restart."));
 
 			ImGuiMCP::SameLine();
 
-			if (ImGuiMCP::Button("Reload from INI"))
+			if (ImGuiMCP::Button(strings::TR("AD_ReloadBtn", "Reload from INI")))
 			{
-				statusMessage = "Reloading...";
+				statusMessage = strings::TR("AD_StatusReloading", "Reloading...");
 				OnMainThread([]() {
-					statusMessage = settings::Reload() ? "Settings reloaded from the INI."
-													   : "Could not read the INI. See the log for why.";
+					statusMessage = settings::Reload() ? strings::TR("AD_StatusReloaded", "Settings reloaded from the INI.")
+													   : strings::TR("AD_StatusReloadFail", "Could not read the INI. See the log for why.");
 				});
 			}
-			HelpMarker("Throws away any change made here since the last save and re-reads the INI from disk. Also picks up edits made to the file by hand.");
+			HelpMarker(strings::TR("AD_HelpReload", "Throws away any change made here since the last save and re-reads the INI from disk. Also picks up edits made to the file by hand."));
 
 			ImGuiMCP::SameLine();
 
-			if (ImGuiMCP::Button("Restore defaults"))
+			if (ImGuiMCP::Button(strings::TR("AD_RestoreBtn", "Restore defaults")))
 			{
 				OnMainThread([]() {
 					settings::RestoreDefaults();
 					logger::debug("Restored default settings");
 				});
 
-				statusMessage = "Defaults restored. Press Save to keep them.";
+				statusMessage = strings::TR("AD_StatusRestored", "Defaults restored. Press Save to keep them.");
 			}
-			HelpMarker("Puts every setting back to the value it has on a fresh install. Nothing is written until you press Save.");
+			HelpMarker(strings::TR("AD_HelpRestore", "Puts every setting back to the value it has on a fresh install. Nothing is written until you press Save."));
 
 			if (!statusMessage.empty())
 			{
@@ -243,7 +259,9 @@ namespace UI
 
 	void __stdcall SettingsPanel::Render()
 	{
-		ImGuiMCP::TextWrapped("Changes apply as soon as you make them. Press Save to keep them for the next time you play.");
+		strings::Tick();
+
+		ImGuiMCP::TextWrapped("%s", strings::TR("AD_Intro", "Changes apply as soon as you make them. Press Save to keep them for the next time you play."));
 		ImGuiMCP::Spacing();
 
 		ImGuiMCP::PushItemWidth(260.0F);

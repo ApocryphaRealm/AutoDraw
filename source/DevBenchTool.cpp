@@ -6,6 +6,7 @@
 #include "DevBench/DevBenchAPI.h"
 #include "Settings.h"
 #include "utils/Logger.h"
+#include "utils/Strings.h"
 
 #include <format>
 #include <string>
@@ -55,6 +56,11 @@ namespace DevBenchTool
 				a_write(a_sink, std::format(R"({{"ok":{},"op":"reload"}})", ok ? "true" : "false").c_str());
 				return;
 			}
+			if (has("strings"))
+			{
+				a_write(a_sink, std::format(R"({{"ok":true,"op":"strings","strings":{}}})", strings::StatusJson()).c_str());
+				return;
+			}
 
 			const auto s = AutoDraw::GetState();
 			const std::string json = std::format(
@@ -98,7 +104,8 @@ namespace DevBenchTool
 			"\"description\":\"Auto Draw live state and test drives: current settings, the tick's "
 			"last observation (combat, weapon state, sheathe countdown, bound-weapon hold) and "
 			"lifetime counters. op=draw / op=sheathe force the animation call for testing; "
-			"op=reload re-reads the INI.\","
+			"op=reload re-reads the INI. op=strings reports the active language, source and loaded "
+			"translation count.\","
 			"\"inputSchema\":{\"type\":\"object\",\"properties\":{\"op\":{\"type\":\"string\"}}},"
 			"\"readOnly\":false"
 			"}";

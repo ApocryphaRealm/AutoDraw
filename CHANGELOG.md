@@ -15,6 +15,11 @@ the last working build of the retired previous repo).
 >   `rules-version.ps1 -Action bump`. If a number was typed by hand, it is wrong until the tool
 >   agrees.
 
+## 1.0.7 - 2026-09-07 - working
+
+### Added
+- The settings page is shown in the game's language: Japanese, Korean, Chinese, Russian, German, French, Spanish, Italian, Polish and Czech translation files ship beside the DLL (Interface/Translations/AutoDraw_<language>.txt) and the page follows the Apocrypha Menu Framework's Language setting; English is the fallback. The framework is looked up by its sort-first name first; autodraw.control gained op=strings.
+
 ## 1.0.6 - 2026-09-05 - untested
 
 ### Added

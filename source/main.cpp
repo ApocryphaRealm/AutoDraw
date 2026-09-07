@@ -10,6 +10,7 @@
 #include "UI.h"
 
 #include "utils/Logger.h"
+#include "utils/Strings.h"
 
 namespace
 {
@@ -21,6 +22,7 @@ namespace
 			DevBenchTool::Init(false);
 			break;
 		case SKSE::MessagingInterface::kDataLoaded:
+			strings::Configure("AutoDraw");
 			UI::Register();
 			AutoDraw::Install();
 			DevBenchTool::Init(true);
