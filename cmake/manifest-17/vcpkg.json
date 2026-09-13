@@ -1,9 +1,9 @@
-﻿{
+{
   "name": "autodraw-17",
   "version-string": "1.0.6",
   "description": "Auto Draw - clean-room MIT rebuild: draws your weapon when combat finds you, sheathes it a delay after combat ends, with a bound-weapon exemption and an in-game settings page. [Skyrim 1.7.x build line: CommonLibSSE-NG 7.2.0, cmake/ports-17]",
   "homepage": "https://github.com/ApocryphaRealm/AutoDraw",
-  "license": "MIT",
+  "license": "GPL-3.0-or-later",
   "dependencies": [
     "commonlibsse-ng",
     "spdlog"
