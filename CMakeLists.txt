@@ -2,7 +2,7 @@
 
 project(
 	AutoDraw
-	VERSION 1.0.8
+	VERSION 1.0.9
 	LANGUAGES CXX
 )
 
